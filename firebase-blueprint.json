@@ -27,6 +27,32 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "접수일" }
       },
       "required": ["name", "phone", "email", "type", "message", "createdAt"]
+    },
+    "News": {
+      "title": "News",
+      "description": "회사 소식/공지사항 데이터 모델",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "제목" },
+        "content": { "type": "string", "description": "내용" },
+        "image": { "type": "string", "format": "uri", "description": "대표 이미지 URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "작성일" },
+        "authorUid": { "type": "string", "description": "작성자 UID" }
+      },
+      "required": ["title", "content", "createdAt", "authorUid"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "사이트 기본 설정 데이터 모델",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string", "description": "회사명" },
+        "address": { "type": "string", "description": "주소" },
+        "phone": { "type": "string", "description": "대표 전화" },
+        "email": { "type": "string", "description": "대표 이메일" },
+        "businessNumber": { "type": "string", "description": "사업자 등록번호" },
+        "ceo": { "type": "string", "description": "대표자명" }
+      }
     }
   },
   "firestore": {
@@ -37,6 +63,14 @@
     "/inquiries/{inquiryId}": {
       "schema": "Inquiry",
       "description": "고객 문의 컬렉션"
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "회사 소식 컬렉션"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "사이트 설정 컬렉션"
     }
   }
 }
