@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Portfolio": {
+      "title": "Portfolio",
+      "description": "시공 사례 데이터 모델",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "프로젝트 제목" },
+        "category": { "type": "string", "description": "카테고리 (호텔, 모텔, 상업시설, 조명특화)" },
+        "image": { "type": "string", "format": "uri", "description": "이미지 URL" },
+        "description": { "type": "string", "description": "상세 설명" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "등록일" },
+        "authorUid": { "type": "string", "description": "작성자 UID" }
+      },
+      "required": ["title", "category", "image", "createdAt", "authorUid"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "고객 문의 데이터 모델",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "성함/업체명" },
+        "phone": { "type": "string", "description": "연락처" },
+        "email": { "type": "string", "format": "email", "description": "이메일" },
+        "type": { "type": "string", "description": "문의 유형" },
+        "message": { "type": "string", "description": "문의 내용" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "접수일" }
+      },
+      "required": ["name", "phone", "email", "type", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/portfolios/{portfolioId}": {
+      "schema": "Portfolio",
+      "description": "시공 사례 컬렉션"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "고객 문의 컬렉션"
+    }
+  }
+}
