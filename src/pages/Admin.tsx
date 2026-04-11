@@ -54,8 +54,14 @@ export default function Admin() {
     try {
       await loginWithGoogle();
       toast.success('관리자 모드로 로그인되었습니다.');
-    } catch (error) {
-      toast.error('로그인에 실패했습니다.');
+    } catch (error: any) {
+      console.error('Login Error:', error);
+      const errorMessage = error.code || error.message || '알 수 없는 에러';
+      toast.error(`로그인 실패: ${errorMessage}`);
+      
+      if (error.code === 'auth/unauthorized-domain') {
+        toast.info('Firebase 콘솔에서 이 도메인을 승인해야 합니다.');
+      }
     }
   };
 
