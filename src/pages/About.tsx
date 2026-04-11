@@ -10,7 +10,7 @@ export default function About() {
           className="max-w-4xl mx-auto"
         >
           <h1 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-6">ABOUT US</h1>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-12">
+          <h2 className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-12">
             신뢰와 기술로 빚어내는<br />
             전기공사의 새로운 기준
           </h2>

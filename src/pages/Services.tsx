@@ -46,7 +46,7 @@ export default function Services() {
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mb-24">
           <h1 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-6">OUR SERVICES</h1>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-8">
+          <h2 className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-8">
             공간의 가치를 높이는<br />
             전문 전기 솔루션
           </h2>

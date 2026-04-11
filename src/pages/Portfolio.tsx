@@ -36,7 +36,7 @@ export default function Portfolio() {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h1 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-6">PORTFOLIO</h1>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-12">시공 사례</h2>
+          <h2 className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-12">시공 사례</h2>
           
           <div className="flex flex-wrap justify-center gap-4">
             {categories.map((cat) => (

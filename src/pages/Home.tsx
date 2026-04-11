@@ -24,7 +24,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tighter text-luxury mb-6">
+            <h1 className="text-5xl md:text-8xl font-heading font-bold tracking-tighter text-luxury mb-6">
               빛으로 완성되는<br />
               <span className="text-foreground/60 italic font-light">공간의 품격</span>
             </h1>
@@ -54,7 +54,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="max-w-2xl">
               <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-4">OUR SERVICES</h2>
-              <h3 className="text-4xl md:text-5xl font-bold tracking-tight">전문적인 기술력으로<br />공간을 혁신합니다</h3>
+              <h3 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">전문적인 기술력으로<br />공간을 혁신합니다</h3>
             </div>
             <Link to="/services" className="group flex items-center space-x-2 text-foreground/60 hover:text-foreground transition-colors">
               <span>전체 서비스 보기</span>
@@ -91,7 +91,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-4">PORTFOLIO</h2>
-            <h3 className="text-4xl md:text-5xl font-bold tracking-tight">주요 시공 사례</h3>
+            <h3 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">주요 시공 사례</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -150,7 +150,7 @@ export default function Home() {
           />
         </div>
         <div className="container mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-8">당신의 비즈니스에<br />최상의 에너지를 더하세요</h2>
+          <h2 className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-8">당신의 비즈니스에<br />최상의 에너지를 더하세요</h2>
           <p className="text-lg text-foreground/60 max-w-xl mx-auto mb-12">
             전문가와의 상담을 통해 귀하의 프로젝트에 가장 적합한 
             전기 설비 솔루션을 제안받으세요.

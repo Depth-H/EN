@@ -52,7 +52,7 @@ export default function Contact() {
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mb-24">
           <h1 className="text-sm font-bold uppercase tracking-[0.3em] text-foreground/40 mb-6">CONTACT US</h1>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-8">
+          <h2 className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-8">
             귀하의 프로젝트를 위한<br />
             최상의 파트너가 되겠습니다
           </h2>
