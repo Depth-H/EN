@@ -1,7 +1,18 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { db, doc, onSnapshot } from '../../firebase';
 
 export default function Footer() {
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'main'), (doc) => {
+      if (doc.exists()) setSettings(doc.data());
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <footer className="bg-background border-t border-foreground/10 py-16">
       <div className="container mx-auto px-6">
@@ -11,7 +22,7 @@ export default function Footer() {
               EN <span className="text-foreground/60 font-light">POWER</span>
             </Link>
             <p className="text-foreground/60 text-sm leading-relaxed mb-6">
-              주식회사 이엔전력은 호텔 및 모텔 전문 전기공사 기업으로, 
+              {settings?.companyName || '주식회사 이엔전력'}은 호텔 및 모텔 전문 전기공사 기업으로, 
               최고의 기술력과 신뢰를 바탕으로 공간의 가치를 높입니다.
             </p>
             <div className="flex space-x-4">
@@ -49,15 +60,15 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-foreground/40 shrink-0" />
-                <span className="text-foreground/60 text-sm">서울특별시 강남구 테헤란로 123, 4층</span>
+                <span className="text-foreground/60 text-sm">{settings?.address || '서울특별시 강남구 테헤란로 123, 4층'}</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-foreground/40 shrink-0" />
-                <span className="text-foreground/60 text-sm">02-1234-5678</span>
+                <span className="text-foreground/60 text-sm">{settings?.phone || '02-1234-5678'}</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-foreground/40 shrink-0" />
-                <span className="text-foreground/60 text-sm">info@enpower.co.kr</span>
+                <span className="text-foreground/60 text-sm">{settings?.email || 'info@enpower.co.kr'}</span>
               </li>
             </ul>
           </div>
@@ -65,7 +76,7 @@ export default function Footer() {
 
         <div className="mt-16 pt-8 border-t border-foreground/5 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p className="text-foreground/40 text-xs">
-            © 2026 주식회사 이엔전력. All rights reserved.
+            © 2026 {settings?.companyName || '주식회사 이엔전력'}. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <Link to="/privacy" className="text-foreground/40 hover:text-foreground text-xs transition-colors">개인정보처리방침</Link>

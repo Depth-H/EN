@@ -1,9 +1,42 @@
 import { motion } from 'motion/react';
-import { ArrowRight, Zap, Shield, Lightbulb, Building2 } from 'lucide-react';
+import { ArrowRight, Zap, Shield, Lightbulb, Building2, Cpu, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { db, collection, onSnapshot, query, orderBy, limit } from '../firebase';
+
+const iconMap: Record<string, any> = {
+  Lightbulb, Zap, Shield, Building2, Cpu, Wrench
+};
 
 export default function Home() {
+  const [portfolios, setPortfolios] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const qPortfolios = query(collection(db, 'portfolios'), orderBy('createdAt', 'desc'), limit(2));
+    const unsubPortfolios = onSnapshot(qPortfolios, (snapshot) => {
+      setPortfolios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    const qServices = query(collection(db, 'services'), orderBy('order', 'asc'), limit(4));
+    const unsubServices = onSnapshot(qServices, (snapshot) => {
+      setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      unsubPortfolios();
+      unsubServices();
+    };
+  }, []);
+
+  const defaultServices = [
+    { icon: Lightbulb, title: '조명 설계 및 시공', desc: '호텔 분위기를 결정짓는 최적의 조명 솔루션' },
+    { icon: Zap, title: '동력 및 배선 공사', desc: '안정적인 전력 공급을 위한 정밀한 전기 설비' },
+    { icon: Shield, title: '소방 및 안전 시스템', desc: '철저한 법규 준수와 완벽한 안전 시스템 구축' },
+    { icon: Building2, title: '스마트 제어 시스템', desc: '효율적인 관리를 위한 최첨단 자동화 시스템' },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -63,25 +96,23 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { icon: Lightbulb, title: '조명 설계 및 시공', desc: '호텔 분위기를 결정짓는 최적의 조명 솔루션' },
-              { icon: Zap, title: '동력 및 배선 공사', desc: '안정적인 전력 공급을 위한 정밀한 전기 설비' },
-              { icon: Shield, title: '소방 및 안전 시스템', desc: '철저한 법규 준수와 완벽한 안전 시스템 구축' },
-              { icon: Building2, title: '스마트 제어 시스템', desc: '효율적인 관리를 위한 최첨단 자동화 시스템' },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="p-8 border border-foreground/5 hover:border-foreground/20 transition-all group"
-              >
-                <item.icon className="h-10 w-10 mb-6 text-foreground/40 group-hover:text-foreground transition-colors" />
-                <h4 className="text-xl font-bold mb-4">{item.title}</h4>
-                <p className="text-foreground/60 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
+            {(services.length > 0 ? services : defaultServices).map((item, i) => {
+              const Icon = (item as any).icon || iconMap[(item as any).iconName] || Zap;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-8 border border-foreground/5 hover:border-foreground/20 transition-all group"
+                >
+                  <Icon className="h-10 w-10 mb-6 text-foreground/40 group-hover:text-foreground transition-colors" />
+                  <h4 className="text-xl font-bold mb-4">{item.title}</h4>
+                  <p className="text-foreground/60 leading-relaxed">{(item as any).description || (item as any).desc}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -95,7 +126,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {[
+            {(portfolios.length > 0 ? portfolios : [
               { 
                 title: '그랜드 하얏트 서울 조명 리노베이션', 
                 category: 'Hotel / Lighting',
@@ -106,7 +137,7 @@ export default function Home() {
                 category: 'Boutique Hotel / Electrical',
                 image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=1000'
               },
-            ].map((project, i) => (
+            ]).map((project, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}

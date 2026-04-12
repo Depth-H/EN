@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { db, collection, addDoc, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
+import { db, collection, addDoc, serverTimestamp, handleFirestoreError, OperationType, doc, onSnapshot } from '../firebase';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -17,6 +18,13 @@ export default function Contact() {
     type: '신축 공사 문의',
     message: ''
   });
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'main'), (doc) => {
+      if (doc.exists()) setSettings(doc.data());
+    });
+    return () => unsub();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +77,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-foreground/40 mb-1">전화번호</p>
-                    <p className="text-lg font-medium">02-1234-5678</p>
+                    <p className="text-lg font-medium">{settings?.phone || '02-1234-5678'}</p>
                   </div>
                 </li>
                 <li className="flex items-start space-x-4">
@@ -78,7 +86,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-foreground/40 mb-1">이메일</p>
-                    <p className="text-lg font-medium">info@enpower.co.kr</p>
+                    <p className="text-lg font-medium">{settings?.email || 'info@enpower.co.kr'}</p>
                   </div>
                 </li>
                 <li className="flex items-start space-x-4">
@@ -87,7 +95,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-foreground/40 mb-1">주소</p>
-                    <p className="text-lg font-medium leading-tight">서울특별시 강남구 테헤란로 123, 4층</p>
+                    <p className="text-lg font-medium leading-tight">{settings?.address || '서울특별시 강남구 테헤란로 123, 4층'}</p>
                   </div>
                 </li>
                 <li className="flex items-start space-x-4">

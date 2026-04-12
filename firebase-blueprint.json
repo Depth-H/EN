@@ -43,7 +43,7 @@
     },
     "Settings": {
       "title": "Settings",
-      "description": "사이트 기본 설정 데이터 모델",
+      "description": "사이트 기본 설정 및 페이지 콘텐츠 데이터 모델",
       "type": "object",
       "properties": {
         "companyName": { "type": "string", "description": "회사명" },
@@ -51,8 +51,25 @@
         "phone": { "type": "string", "description": "대표 전화" },
         "email": { "type": "string", "description": "대표 이메일" },
         "businessNumber": { "type": "string", "description": "사업자 등록번호" },
-        "ceo": { "type": "string", "description": "대표자명" }
+        "ceo": { "type": "string", "description": "대표자명" },
+        "aboutHeadline": { "type": "string", "description": "회사소개 헤드라인" },
+        "aboutVision": { "type": "string", "description": "비전 설명" },
+        "aboutValues": { "type": "array", "description": "핵심 가치 리스트" },
+        "aboutHistory": { "type": "array", "description": "회사 연혁 리스트" }
       }
+    },
+    "Service": {
+      "title": "Service",
+      "description": "사업 분야/서비스 데이터 모델",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "서비스명" },
+        "description": { "type": "string", "description": "상세 설명" },
+        "iconName": { "type": "string", "description": "아이콘 이름 (Lucide)" },
+        "features": { "type": "array", "description": "주요 특징 리스트" },
+        "order": { "type": "number", "description": "표시 순서" }
+      },
+      "required": ["title", "description", "order"]
     }
   },
   "firestore": {
@@ -71,6 +88,10 @@
     "/settings/{settingId}": {
       "schema": "Settings",
       "description": "사이트 설정 컬렉션"
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "사업 분야 컬렉션"
     }
   }
 }

@@ -20,7 +20,8 @@ import {
   Mail,
   MapPin,
   CreditCard,
-  User as UserIcon
+  User as UserIcon,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,7 @@ import {
 } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
-type Tab = 'dashboard' | 'portfolios' | 'news' | 'settings';
+type Tab = 'dashboard' | 'portfolios' | 'services' | 'news' | 'settings';
 
 export default function Admin() {
   const [user, setUser] = useState<User | null>(null);
@@ -64,6 +65,7 @@ export default function Admin() {
   
   // Data States
   const [portfolios, setPortfolios] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [siteSettings, setSiteSettings] = useState<any>({
@@ -72,7 +74,11 @@ export default function Admin() {
     phone: '',
     email: '',
     businessNumber: '',
-    ceo: ''
+    ceo: '',
+    aboutHeadline: '',
+    aboutVision: '',
+    aboutValues: [],
+    aboutHistory: []
   });
 
   // Modal States
@@ -96,6 +102,10 @@ export default function Admin() {
       setPortfolios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    const unsubServices = onSnapshot(query(collection(db, 'services'), orderBy('order', 'asc')), (snapshot) => {
+      setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
     const unsubNews = onSnapshot(query(collection(db, 'news'), orderBy('createdAt', 'desc')), (snapshot) => {
       setNews(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
@@ -110,6 +120,7 @@ export default function Admin() {
 
     return () => {
       unsubPortfolios();
+      unsubServices();
       unsubNews();
       unsubInquiries();
       unsubSettings();
@@ -135,12 +146,14 @@ export default function Admin() {
   };
 
   // CRUD Handlers
-  const openModal = (type: 'portfolios' | 'news', item?: any) => {
+  const openModal = (type: 'portfolios' | 'news' | 'services', item?: any) => {
     setEditingId(item?.id || null);
     if (type === 'portfolios') {
       setFormData(item ? { ...item } : { title: '', category: '', image: '', description: '' });
-    } else {
+    } else if (type === 'news') {
       setFormData(item ? { ...item } : { title: '', content: '', image: '' });
+    } else if (type === 'services') {
+      setFormData(item ? { ...item } : { title: '', description: '', iconName: 'Zap', features: [], order: services.length });
     }
     setIsModalOpen(true);
   };
@@ -149,7 +162,7 @@ export default function Admin() {
     e.preventDefault();
     if (!user) return;
 
-    const collectionName = activeTab === 'portfolios' ? 'portfolios' : 'news';
+    const collectionName = activeTab === 'portfolios' ? 'portfolios' : (activeTab === 'news' ? 'news' : 'services');
     try {
       const data = {
         ...formData,
@@ -193,6 +206,38 @@ export default function Admin() {
     }
   };
 
+  const addValue = () => {
+    const values = [...(siteSettings.aboutValues || []), { title: '', desc: '' }];
+    setSiteSettings({ ...siteSettings, aboutValues: values });
+  };
+
+  const updateValue = (index: number, field: string, value: string) => {
+    const values = [...siteSettings.aboutValues];
+    values[index] = { ...values[index], [field]: value };
+    setSiteSettings({ ...siteSettings, aboutValues: values });
+  };
+
+  const removeValue = (index: number) => {
+    const values = siteSettings.aboutValues.filter((_: any, i: number) => i !== index);
+    setSiteSettings({ ...siteSettings, aboutValues: values });
+  };
+
+  const addHistory = () => {
+    const history = [...(siteSettings.aboutHistory || []), { year: '', event: '' }];
+    setSiteSettings({ ...siteSettings, aboutHistory: history });
+  };
+
+  const updateHistory = (index: number, field: string, value: string) => {
+    const history = [...siteSettings.aboutHistory];
+    history[index] = { ...history[index], [field]: value };
+    setSiteSettings({ ...siteSettings, aboutHistory: history });
+  };
+
+  const removeHistory = (index: number) => {
+    const history = siteSettings.aboutHistory.filter((_: any, i: number) => i !== index);
+    setSiteSettings({ ...siteSettings, aboutHistory: history });
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background">로딩 중...</div>;
 
   if (!user) {
@@ -223,6 +268,7 @@ export default function Admin() {
         <nav className="flex-grow p-4 space-y-2">
           <SidebarItem icon={LayoutDashboard} label="대시보드" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
           <SidebarItem icon={Image} label="포트폴리오 관리" active={activeTab === 'portfolios'} onClick={() => setActiveTab('portfolios')} />
+          <SidebarItem icon={Zap} label="사업 분야 관리" active={activeTab === 'services'} onClick={() => setActiveTab('services')} />
           <SidebarItem icon={FileText} label="소식 관리" active={activeTab === 'news'} onClick={() => setActiveTab('news')} />
           <SidebarItem icon={SettingsIcon} label="사이트 설정" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
         </nav>
@@ -240,8 +286,9 @@ export default function Admin() {
           {activeTab === 'dashboard' && (
             <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <h1 className="text-4xl font-bold tracking-tight mb-8">대시보드</h1>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
                 <StatCard icon={Image} label="총 포트폴리오" value={portfolios.length} color="text-blue-500" />
+                <StatCard icon={Zap} label="사업 분야" value={services.length} color="text-yellow-500" />
                 <StatCard icon={MessageSquare} label="새로운 문의" value={inquiries.length} color="text-green-500" />
                 <StatCard icon={FileText} label="등록된 소식" value={news.length} color="text-purple-500" />
               </div>
@@ -287,20 +334,24 @@ export default function Admin() {
             </motion.div>
           )}
 
-          {(activeTab === 'portfolios' || activeTab === 'news') && (
+          {(activeTab === 'portfolios' || activeTab === 'news' || activeTab === 'services') && (
             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <div className="flex justify-between items-end mb-12">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight mb-2">{activeTab === 'portfolios' ? '포트폴리오 관리' : '소식 관리'}</h1>
-                  <p className="text-foreground/60">{activeTab === 'portfolios' ? '웹사이트에 표시될 시공 사례를 관리합니다.' : '회사 공지사항 및 새로운 소식을 관리합니다.'}</p>
+                  <h1 className="text-4xl font-bold tracking-tight mb-2">
+                    {activeTab === 'portfolios' ? '포트폴리오 관리' : (activeTab === 'news' ? '소식 관리' : '사업 분야 관리')}
+                  </h1>
+                  <p className="text-foreground/60">
+                    {activeTab === 'portfolios' ? '웹사이트에 표시될 시공 사례를 관리합니다.' : (activeTab === 'news' ? '회사 공지사항 및 새로운 소식을 관리합니다.' : '회사의 주요 사업 분야 및 서비스 항목을 관리합니다.')}
+                  </p>
                 </div>
                 <Button className="rounded-none px-8 py-6 bg-luxury hover:bg-luxury/90" onClick={() => openModal(activeTab as any)}>
-                  <Plus className="mr-2 h-4 w-4" /> {activeTab === 'portfolios' ? '새 프로젝트 추가' : '새 소식 작성'}
+                  <Plus className="mr-2 h-4 w-4" /> {activeTab === 'portfolios' ? '새 프로젝트 추가' : (activeTab === 'news' ? '새 소식 작성' : '새 사업 분야 추가')}
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                {(activeTab === 'portfolios' ? portfolios : news).map((item) => (
+                {(activeTab === 'portfolios' ? portfolios : (activeTab === 'news' ? news : services)).map((item) => (
                   <Card key={item.id} className="rounded-none border-foreground/10 bg-secondary/5 hover:bg-secondary/10 transition-colors">
                     <CardContent className="p-6 flex items-center justify-between">
                       <div className="flex items-center space-x-6">
@@ -309,6 +360,7 @@ export default function Admin() {
                           <h4 className="text-xl font-bold mb-1">{item.title}</h4>
                           <div className="flex space-x-4 text-sm text-foreground/60">
                             {activeTab === 'portfolios' && <span>카테고리: {item.category}</span>}
+                            {activeTab === 'services' && <span>순서: {item.order}</span>}
                             <span>등록일: {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : '방금 전'}</span>
                           </div>
                         </div>
@@ -330,35 +382,89 @@ export default function Admin() {
 
           {activeTab === 'settings' && (
             <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <h1 className="text-4xl font-bold tracking-tight mb-8">사이트 설정</h1>
-              <Card className="rounded-none border-foreground/10 max-w-3xl">
-                <CardContent className="p-8">
-                  <form onSubmit={handleSettingsSave} className="space-y-6">
+              <h1 className="text-4xl font-bold tracking-tight mb-8">사이트 설정 및 콘텐츠 관리</h1>
+              <form onSubmit={handleSettingsSave} className="space-y-12">
+                {/* Basic Info */}
+                <Card className="rounded-none border-foreground/10">
+                  <CardHeader className="border-b border-foreground/5"><CardTitle className="text-lg">기본 정보 (연락처 등)</CardTitle></CardHeader>
+                  <CardContent className="p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <SettingsField label="회사명" icon={Building2} value={siteSettings.companyName} onChange={(v) => setSiteSettings({...siteSettings, companyName: v})} />
                       <SettingsField label="대표자명" icon={UserIcon} value={siteSettings.ceo} onChange={(v) => setSiteSettings({...siteSettings, ceo: v})} />
                       <SettingsField label="대표 전화" icon={Phone} value={siteSettings.phone} onChange={(v) => setSiteSettings({...siteSettings, phone: v})} />
                       <SettingsField label="대표 이메일" icon={Mail} value={siteSettings.email} onChange={(v) => setSiteSettings({...siteSettings, email: v})} />
                       <SettingsField label="사업자 번호" icon={CreditCard} value={siteSettings.businessNumber} onChange={(v) => setSiteSettings({...siteSettings, businessNumber: v})} />
+                      <SettingsField label="회사 주소" icon={MapPin} value={siteSettings.address} onChange={(v) => setSiteSettings({...siteSettings, address: v})} />
                     </div>
-                    <SettingsField label="회사 주소" icon={MapPin} value={siteSettings.address} onChange={(v) => setSiteSettings({...siteSettings, address: v})} />
-                    <div className="pt-6 border-t border-foreground/10 flex justify-end">
-                      <Button type="submit" className="rounded-none px-12 bg-luxury hover:bg-luxury/90">설정 저장하기</Button>
+                  </CardContent>
+                </Card>
+
+                {/* About Content */}
+                <Card className="rounded-none border-foreground/10">
+                  <CardHeader className="border-b border-foreground/5"><CardTitle className="text-lg">회사 소개 페이지 콘텐츠</CardTitle></CardHeader>
+                  <CardContent className="p-8 space-y-8">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">소개 헤드라인</label>
+                      <Input value={siteSettings.aboutHeadline || ''} onChange={(e) => setSiteSettings({...siteSettings, aboutHeadline: e.target.value})} placeholder="예: 신뢰와 기술로 빚어내는 전기공사의 새로운 기준" className="rounded-none border-foreground/20" />
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">비전 설명</label>
+                      <Textarea value={siteSettings.aboutVision || ''} onChange={(e) => setSiteSettings({...siteSettings, aboutVision: e.target.value})} className="rounded-none border-foreground/20 min-h-[120px]" />
+                    </div>
+
+                    {/* Values */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium text-foreground/60">핵심 가치</label>
+                        <Button type="button" variant="outline" size="sm" onClick={addValue} className="rounded-none"><Plus className="h-3 w-3 mr-1" /> 추가</Button>
+                      </div>
+                      <div className="space-y-4">
+                        {(siteSettings.aboutValues || []).map((val: any, i: number) => (
+                          <div key={i} className="flex gap-4 items-start p-4 bg-secondary/5 border border-foreground/5">
+                            <div className="flex-grow space-y-4">
+                              <Input value={val.title} onChange={(e) => updateValue(i, 'title', e.target.value)} placeholder="가치 제목 (예: 전문성)" className="rounded-none border-foreground/20" />
+                              <Textarea value={val.desc} onChange={(e) => updateValue(i, 'desc', e.target.value)} placeholder="상세 설명" className="rounded-none border-foreground/20 min-h-[80px]" />
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeValue(i)} className="text-destructive"><X className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* History */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium text-foreground/60">회사 연혁</label>
+                        <Button type="button" variant="outline" size="sm" onClick={addHistory} className="rounded-none"><Plus className="h-3 w-3 mr-1" /> 추가</Button>
+                      </div>
+                      <div className="space-y-4">
+                        {(siteSettings.aboutHistory || []).map((hist: any, i: number) => (
+                          <div key={i} className="flex gap-4 items-center p-4 bg-secondary/5 border border-foreground/5">
+                            <Input value={hist.year} onChange={(e) => updateHistory(i, 'year', e.target.value)} placeholder="연도 (예: 2024)" className="w-32 rounded-none border-foreground/20" />
+                            <Input value={hist.event} onChange={(e) => updateHistory(i, 'event', e.target.value)} placeholder="내용" className="flex-grow rounded-none border-foreground/20" />
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeHistory(i)} className="text-destructive"><X className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-end sticky bottom-8">
+                  <Button type="submit" className="rounded-none px-16 py-8 text-lg bg-luxury hover:bg-luxury/90 shadow-2xl">모든 설정 저장하기</Button>
+                </div>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Universal Modal for Portfolio & News */}
+        {/* Universal Modal for Portfolio, News, Services */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-2xl bg-background border-luxury rounded-none p-0 overflow-hidden">
             <form onSubmit={handleSubmit}>
               <DialogHeader className="p-8 border-b border-foreground/10">
                 <DialogTitle className="text-2xl font-bold tracking-tight">
-                  {editingId ? '수정하기' : (activeTab === 'portfolios' ? '새 프로젝트 추가' : '새 소식 작성')}
+                  {editingId ? '수정하기' : (activeTab === 'portfolios' ? '새 프로젝트 추가' : (activeTab === 'news' ? '새 소식 작성' : '새 사업 분야 추가'))}
                 </DialogTitle>
               </DialogHeader>
               <div className="p-8 space-y-6">
@@ -372,13 +478,29 @@ export default function Admin() {
                     <Input required value={formData.category || ''} onChange={(e) => setFormData({...formData, category: e.target.value})} placeholder="호텔, 모텔, 상가 등" className="rounded-none border-foreground/20" />
                   </div>
                 )}
+                {activeTab === 'services' && (
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">아이콘 이름 (Lucide)</label>
+                      <Input value={formData.iconName || 'Zap'} onChange={(e) => setFormData({...formData, iconName: e.target.value})} placeholder="Lightbulb, Zap, Shield 등" className="rounded-none border-foreground/20" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">표시 순서</label>
+                      <Input type="number" value={formData.order || 0} onChange={(e) => setFormData({...formData, order: parseInt(e.target.value)})} className="rounded-none border-foreground/20" />
+                    </div>
+                  </div>
+                )}
+                {(activeTab === 'portfolios' || activeTab === 'news') && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground/60">이미지 URL</label>
+                    <Input type="url" value={formData.image || ''} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="https://..." className="rounded-none border-foreground/20" />
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/60">이미지 URL</label>
-                  <Input type="url" value={formData.image || ''} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="https://..." className="rounded-none border-foreground/20" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/60">{activeTab === 'portfolios' ? '상세 설명' : '내용'}</label>
-                  <Textarea required value={formData.description || formData.content || ''} onChange={(e) => setFormData({...formData, [activeTab === 'portfolios' ? 'description' : 'content']: e.target.value})} className="rounded-none border-foreground/20 min-h-[200px]" />
+                  <label className="text-sm font-medium text-foreground/60">
+                    {activeTab === 'portfolios' ? '상세 설명' : (activeTab === 'news' ? '내용' : '서비스 설명')}
+                  </label>
+                  <Textarea required value={formData.description || formData.content || ''} onChange={(e) => setFormData({...formData, [activeTab === 'news' ? 'content' : 'description']: e.target.value})} className="rounded-none border-foreground/20 min-h-[200px]" />
                 </div>
               </div>
               <DialogFooter className="p-8 bg-secondary/5 border-t border-foreground/10">

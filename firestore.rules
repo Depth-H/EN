@@ -86,6 +86,13 @@ service cloud.firestore {
       return data.keys().hasAny(['companyName', 'address', 'phone', 'email', 'businessNumber', 'ceo']);
     }
 
+    function isValidService(data) {
+      return data.keys().hasAll(['title', 'description', 'order']) &&
+             data.title is string && data.title.size() > 0 &&
+             data.description is string && data.description.size() > 0 &&
+             data.order is number;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -96,6 +103,12 @@ service cloud.firestore {
       allow create: if isAdmin() && isValidPortfolio(request.resource.data);
       allow update: if isAdmin() && isValidPortfolio(request.resource.data);
       allow delete: if isAdmin();
+    }
+
+    // Services: Public read, Admin write
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidService(request.resource.data);
     }
 
     // News: Public read, Admin write
