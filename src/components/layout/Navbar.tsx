@@ -38,7 +38,7 @@ export default function Navbar() {
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <span className="text-2xl font-heading font-bold tracking-tighter text-luxury">
-            EN <span className="text-foreground/60 font-light">POWER</span>
+            EN <span className="text-foreground/60 font-light">electricity co.</span>
           </span>
         </Link>
 

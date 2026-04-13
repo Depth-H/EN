@@ -52,9 +52,14 @@ import {
   getDoc,
   serverTimestamp,
   handleFirestoreError,
-  OperationType
+  OperationType,
+  storage,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from '../firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { Loader2, Upload } from 'lucide-react';
 
 type Tab = 'dashboard' | 'portfolios' | 'services' | 'news' | 'settings';
 
@@ -85,6 +90,7 @@ export default function Admin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -156,6 +162,26 @@ export default function Admin() {
       setFormData(item ? { ...item } : { title: '', description: '', iconName: 'Zap', features: [], order: services.length });
     }
     setIsModalOpen(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, `uploads/${activeTab}/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      setFormData({ ...formData, image: downloadURL });
+      toast.success('이미지가 업로드되었습니다.');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('이미지 업로드에 실패했습니다.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -524,9 +550,42 @@ export default function Admin() {
                   </div>
                 )}
                 {(activeTab === 'portfolios' || activeTab === 'news') && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground/60">이미지 URL</label>
-                    <Input type="url" value={formData.image || ''} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="https://..." className="rounded-none border-foreground/20" />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">이미지 업로드</label>
+                      <div className="flex gap-4">
+                        <div className="relative flex-grow">
+                          <Input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleFileUpload} 
+                            className="hidden" 
+                            id="image-upload"
+                            disabled={uploading}
+                          />
+                          <label 
+                            htmlFor="image-upload" 
+                            className={`flex items-center justify-center w-full h-12 border-2 border-dashed border-foreground/20 cursor-pointer hover:border-luxury transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {uploading ? (
+                              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                            ) : (
+                              <Upload className="h-5 w-5 mr-2" />
+                            )}
+                            {uploading ? '업로드 중...' : '컴퓨터에서 사진 선택'}
+                          </label>
+                        </div>
+                        {formData.image && (
+                          <div className="w-12 h-12 border border-foreground/10 overflow-hidden">
+                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/60">또는 이미지 URL</label>
+                      <Input type="url" value={formData.image || ''} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="https://..." className="rounded-none border-foreground/20" />
+                    </div>
                   </div>
                 )}
                 <div className="space-y-2">
