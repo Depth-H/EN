@@ -43,7 +43,7 @@ service cloud.firestore {
     }
 
     function isValidUrl(url) {
-      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+      return url is string && (url == "" || url.matches("^https://.*") || url.matches("^http://.*"));
     }
 
     function isValidEmail(email) {
@@ -55,31 +55,29 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidPortfolio(data) {
-      return data.keys().hasAll(['title', 'category', 'image', 'createdAt', 'authorUid']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+      return data.keys().hasAll(['title', 'category', 'image', 'authorUid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 500 &&
              data.category is string && data.category.size() > 0 &&
              isValidUrl(data.image) &&
-             data.createdAt is timestamp &&
-             data.authorUid == request.auth.uid;
+             data.authorUid is string && data.authorUid.size() > 0;
     }
 
     function isValidInquiry(data) {
       return data.keys().hasAll(['name', 'phone', 'email', 'type', 'message', 'createdAt']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
              data.phone is string && data.phone.size() > 0 &&
              isValidEmail(data.email) &&
              data.type is string &&
-             data.message is string && data.message.size() > 0 && data.message.size() < 5000 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 10000 &&
              data.createdAt is timestamp;
     }
 
     function isValidNews(data) {
-      return data.keys().hasAll(['title', 'content', 'createdAt', 'authorUid']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 300 &&
+      return data.keys().hasAll(['title', 'content', 'authorUid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 500 &&
              data.content is string && data.content.size() > 0 &&
              (!('image' in data) || isValidUrl(data.image)) &&
-             data.createdAt is timestamp &&
-             data.authorUid == request.auth.uid;
+             data.authorUid is string && data.authorUid.size() > 0;
     }
 
     function isValidSettings(data) {
@@ -108,21 +106,22 @@ service cloud.firestore {
     // Services: Public read, Admin write
     match /services/{serviceId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidService(request.resource.data);
+      allow create, update: if isAdmin() && isValidService(request.resource.data);
+      allow delete: if isAdmin();
     }
 
     // News: Public read, Admin write
     match /news/{newsId} {
       allow read: if true;
-      allow create: if isAdmin() && isValidNews(request.resource.data);
-      allow update: if isAdmin() && isValidNews(request.resource.data);
+      allow create, update: if isAdmin() && isValidNews(request.resource.data);
       allow delete: if isAdmin();
     }
 
     // Settings: Public read, Admin write
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidSettings(request.resource.data);
+      allow create, update: if isAdmin() && isValidSettings(request.resource.data);
+      allow delete: if isAdmin();
     }
 
     // Inquiries: Admin read, Public create
