@@ -331,22 +331,55 @@ export default function Admin() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Quick Actions */}
+              <div className="mt-12">
+                <h2 className="text-2xl font-bold mb-6">신규 등록 바로가기</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Button 
+                    onClick={() => { setActiveTab('portfolios'); openModal('portfolios'); }} 
+                    className="h-24 bg-[#D4AF37] hover:bg-[#B8860B] text-black font-bold text-xl rounded-none shadow-lg"
+                    style={{ backgroundColor: '#D4AF37', color: '#000000' }}
+                  >
+                    <Plus className="mr-2 h-6 w-6" /> 포트폴리오 등록
+                  </Button>
+                  <Button 
+                    onClick={() => { setActiveTab('services'); openModal('services'); }} 
+                    className="h-24 bg-[#D4AF37] hover:bg-[#B8860B] text-black font-bold text-xl rounded-none shadow-lg"
+                    style={{ backgroundColor: '#D4AF37', color: '#000000' }}
+                  >
+                    <Plus className="mr-2 h-6 w-6" /> 사업 분야 등록
+                  </Button>
+                  <Button 
+                    onClick={() => { setActiveTab('news'); openModal('news'); }} 
+                    className="h-24 bg-[#D4AF37] hover:bg-[#B8860B] text-black font-bold text-xl rounded-none shadow-lg"
+                    style={{ backgroundColor: '#D4AF37', color: '#000000' }}
+                  >
+                    <Plus className="mr-2 h-6 w-6" /> 소식 등록
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           )}
 
           {(activeTab === 'portfolios' || activeTab === 'news' || activeTab === 'services') && (
             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="flex justify-between items-end mb-12">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 border-b border-foreground/10 pb-8">
                 <div>
                   <h1 className="text-4xl font-bold tracking-tight mb-2">
                     {activeTab === 'portfolios' ? '포트폴리오 관리' : (activeTab === 'news' ? '소식 관리' : '사업 분야 관리')}
                   </h1>
-                  <p className="text-foreground/60">
+                  <p className="text-foreground/60 max-w-2xl">
                     {activeTab === 'portfolios' ? '웹사이트에 표시될 시공 사례를 관리합니다.' : (activeTab === 'news' ? '회사 공지사항 및 새로운 소식을 관리합니다.' : '회사의 주요 사업 분야 및 서비스 항목을 관리합니다.')}
                   </p>
                 </div>
-                <Button className="rounded-none px-8 py-6 bg-luxury hover:bg-luxury/90" onClick={() => openModal(activeTab as any)}>
-                  <Plus className="mr-2 h-4 w-4" /> {activeTab === 'portfolios' ? '새 프로젝트 추가' : (activeTab === 'news' ? '새 소식 작성' : '새 사업 분야 추가')}
+                <Button 
+                  className="rounded-none px-10 py-7 bg-[#D4AF37] hover:bg-[#B8860B] text-black font-bold text-lg shadow-lg shrink-0 flex items-center justify-center" 
+                  onClick={() => openModal(activeTab as any)}
+                  style={{ backgroundColor: '#D4AF37', color: '#000000' }}
+                >
+                  <Plus className="mr-2 h-6 w-6" /> 
+                  {activeTab === 'portfolios' ? '새 프로젝트 추가' : (activeTab === 'news' ? '새 소식 작성' : '새 사업 분야 추가')}
                 </Button>
               </div>
 
