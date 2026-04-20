@@ -155,7 +155,7 @@ export default function Admin() {
   const openModal = (type: 'portfolios' | 'news' | 'services', item?: any) => {
     setEditingId(item?.id || null);
     if (type === 'portfolios') {
-      setFormData(item ? { ...item } : { title: '', category: '', image: '', description: '' });
+      setFormData(item ? { ...item } : { title: '', category: '', images: [], description: '' });
     } else if (type === 'news') {
       setFormData(item ? { ...item } : { title: '', content: '', image: '' });
     } else if (type === 'services') {
@@ -165,28 +165,63 @@ export default function Admin() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
 
     setUploading(true);
     try {
-      const storageRef = ref(storage, `uploads/${activeTab}/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      const uploadPromises = Array.from(files).map(async (file: File) => {
+        const storageRef = ref(storage, `uploads/${activeTab}/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        return getDownloadURL(snapshot.ref);
+      });
+
+      const downloadURLs = await Promise.all(uploadPromises);
       
-      setFormData({ ...formData, image: downloadURL });
-      toast.success('이미지가 업로드되었습니다.');
+      if (activeTab === 'portfolios') {
+        const currentImages = formData.images || [];
+        setFormData({ ...formData, images: [...currentImages, ...downloadURLs] });
+      } else {
+        setFormData({ ...formData, image: downloadURLs[0] });
+      }
+      
+      toast.success(`${downloadURLs.length}개의 이미지가 업로드되었습니다.`);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('이미지 업로드에 실패했습니다.');
     } finally {
       setUploading(false);
+      // Reset input value so same file can be selected again
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    if (activeTab === 'portfolios') {
+      const newImages = [...(formData.images || [])];
+      newImages.splice(index, 1);
+      setFormData({ ...formData, images: newImages });
+    } else {
+      setFormData({ ...formData, image: '' });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Validation for portfolio: minimum 4 images
+    if (activeTab === 'portfolios') {
+      if (!formData.images || formData.images.length < 4) {
+        toast.error('포트폴리오 사진을 최소 4장 이상 업로드해 주세요.');
+        return;
+      }
+      // Also set the first image as 'image' for compatibility
+      formData.image = formData.images[0];
+    } else if (activeTab === 'news' && !formData.image) {
+      toast.error('이미지를 업로드해 주세요.');
+      return;
+    }
 
     const collectionName = activeTab === 'portfolios' ? 'portfolios' : (activeTab === 'news' ? 'news' : 'services');
     try {
@@ -552,12 +587,15 @@ export default function Admin() {
                 {(activeTab === 'portfolios' || activeTab === 'news') && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground/60">이미지 업로드</label>
-                      <div className="flex gap-4">
-                        <div className="relative flex-grow">
+                      <label className="text-sm font-medium text-foreground/60">
+                        사진 업로드 {activeTab === 'portfolios' && '(최소 4장)'}
+                      </label>
+                      <div className="flex flex-col gap-4">
+                        <div className="relative">
                           <Input 
                             type="file" 
                             accept="image/*" 
+                            multiple={activeTab === 'portfolios'}
                             onChange={handleFileUpload} 
                             className="hidden" 
                             id="image-upload"
@@ -565,26 +603,77 @@ export default function Admin() {
                           />
                           <label 
                             htmlFor="image-upload" 
-                            className={`flex items-center justify-center w-full h-12 border-2 border-dashed border-foreground/20 cursor-pointer hover:border-luxury transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`flex items-center justify-center w-full h-16 border-2 border-dashed border-foreground/20 cursor-pointer hover:border-luxury bg-secondary/5 transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {uploading ? (
-                              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                              <Loader2 className="h-6 w-6 animate-spin mr-3 text-luxury" />
                             ) : (
-                              <Upload className="h-5 w-5 mr-2" />
+                              <Upload className="h-6 w-6 mr-3 text-luxury" />
                             )}
-                            {uploading ? '업로드 중...' : '컴퓨터에서 사진 선택'}
+                            <div className="text-left">
+                              <p className="font-bold">{uploading ? '업로드 중...' : '내 컴퓨터에서 사진 선택'}</p>
+                              <p className="text-xs text-foreground/40">{activeTab === 'portfolios' ? '여러 장을 한꺼번에 선택할 수 있습니다.' : 'PC에서 파일을 전송합니다.'}</p>
+                            </div>
                           </label>
                         </div>
-                        {formData.image && (
-                          <div className="w-12 h-12 border border-foreground/10 overflow-hidden">
-                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                          </div>
-                        )}
+
+                        {/* Image Preview Grid */}
+                        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                          {activeTab === 'portfolios' ? (
+                            (formData.images || []).map((imgUrl: string, idx: number) => (
+                              <div key={idx} className="relative aspect-square group border border-foreground/10 bg-black overflow-hidden">
+                                <img src={imgUrl} className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(idx)}
+                                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                                {idx === 0 && <div className="absolute bottom-0 left-0 right-0 bg-luxury text-black text-[10px] font-bold text-center">대표</div>}
+                              </div>
+                            ))
+                          ) : (
+                            formData.image && (
+                              <div className="relative aspect-square group border border-foreground/10 bg-black overflow-hidden">
+                                <img src={formData.image} className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(0)}
+                                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            )
+                          )}
+                          {activeTab === 'portfolios' && (formData.images || []).length < 4 && (
+                            <div className="aspect-square border border-luxury/20 flex flex-col items-center justify-center bg-luxury/5 text-[10px] text-luxury text-center leading-tight">
+                              <span>사진 부족</span>
+                              <span>({(formData.images || []).length}/4)</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground/60">또는 이미지 URL</label>
-                      <Input type="url" value={formData.image || ''} onChange={(e) => setFormData({...formData, image: e.target.value})} placeholder="https://..." className="rounded-none border-foreground/20" />
+                      <label className="text-sm font-medium text-foreground/60">또는 직접 이미지 URL 입력</label>
+                      <Input 
+                        type="url" 
+                        value={activeTab === 'portfolios' ? '' : (formData.image || '')} 
+                        onChange={(e) => {
+                          if (activeTab === 'portfolios') {
+                            if (e.target.value) {
+                              setFormData({...formData, images: [...(formData.images || []), e.target.value]});
+                              e.target.value = '';
+                            }
+                          } else {
+                            setFormData({...formData, image: e.target.value});
+                          }
+                        }} 
+                        placeholder={activeTab === 'portfolios' ? "URL 입력 후 엔터 (이미지 하나씩 추가)" : "https://..."}
+                        className="rounded-none border-foreground/20" 
+                      />
                     </div>
                   </div>
                 )}

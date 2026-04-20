@@ -71,8 +71,8 @@ export default function Services() {
             전문 전기 솔루션
           </h2>
           <p className="text-xl text-foreground/60 leading-relaxed">
-            주식회사 이엔전력은 기획부터 설계, 시공, 유지보수까지 
-            전기 공사의 전 과정을 아우르는 원스톱 서비스를 제공합니다.
+            <strong>이엔전력</strong>은 기획부터 설계, 시공, 유지보수까지 
+            <strong>모텔전기공사</strong>를 포함한 모든 전기 설비 공사의 전 과정을 아우르는 원스톱 서비스를 제공합니다.
           </p>
         </div>
 

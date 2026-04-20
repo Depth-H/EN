@@ -62,8 +62,8 @@ export default function Home() {
               <span className="text-foreground/60 italic font-light">공간의 품격</span>
             </h1>
             <p className="text-lg md:text-xl text-foreground/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-              주식회사 이엔전력은 호텔 및 모텔 전문 전기공사 솔루션을 통해 
-              고객님의 비즈니스 공간에 최상의 가치를 더합니다.
+              <strong>이엔전력</strong>은 호텔 및 <strong>모텔전기공사</strong> 전문 솔루션을 통해 
+              고객님의 비즈니스 공간에 최상의 가치를 더하는 모텔 전문 전기공사 업체입니다.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
               <Button size="lg" className="rounded-none px-10 py-7 text-lg" render={<Link to="/portfolio" />} nativeButton={false}>

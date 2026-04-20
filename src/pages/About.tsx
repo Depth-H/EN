@@ -51,8 +51,8 @@ export default function About() {
             <div>
               <h3 className="text-2xl font-bold mb-6">우리의 비전</h3>
               <p className="text-foreground/60 leading-relaxed whitespace-pre-line">
-                {content?.aboutVision || `주식회사 이엔전력은 단순한 전기 시공을 넘어, 공간의 목적과 가치를 깊이 이해합니다. 
-                특히 호텔 및 모텔 산업의 특수성을 고려한 맞춤형 설계를 통해 
+                {content?.aboutVision || `이엔전력(주식회사 이엔전력)은 단순한 전기 시공을 넘어, 공간의 목적과 가치를 깊이 이해합니다. 
+                특히 전문적인 모텔전기공사 및 호텔 인프라 구축의 특수성을 고려한 맞춤형 설계를 통해 
                 투숙객에게는 최상의 경험을, 운영자에게는 효율적인 관리 환경을 제공하는 것을 목표로 합니다.`}
               </p>
             </div>
