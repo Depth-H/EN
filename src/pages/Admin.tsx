@@ -169,30 +169,57 @@ export default function Admin() {
     if (!files || files.length === 0 || !user) return;
 
     setUploading(true);
-    try {
-      const uploadPromises = Array.from(files).map(async (file: File) => {
-        const storageRef = ref(storage, `uploads/${activeTab}/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        return getDownloadURL(snapshot.ref);
-      });
+    const uploadedUrls: string[] = [];
+    let successCount = 0;
+    let failCount = 0;
 
-      const downloadURLs = await Promise.all(uploadPromises);
-      
-      if (activeTab === 'portfolios') {
-        const currentImages = formData.images || [];
-        setFormData({ ...formData, images: [...currentImages, ...downloadURLs] });
-      } else {
-        setFormData({ ...formData, image: downloadURLs[0] });
+    try {
+      const fileList = Array.from(files);
+      for (const file of fileList as File[]) {
+        // Size check: limit to 10MB per file
+        if (file.size > 10 * 1024 * 1024) {
+          toast.warning(`${file.name}: 파일 크기가 너무 큽니다 (10MB 제한).`);
+          failCount++;
+          continue;
+        }
+
+        try {
+          const storageRef = ref(storage, `uploads/${activeTab}/${Date.now()}_${file.name}`);
+          const snapshot = await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          uploadedUrls.push(downloadURL);
+          successCount++;
+        } catch (err: any) {
+          console.error(`Upload failed for ${file.name}:`, err);
+          failCount++;
+          // If permission error, show a more specific message
+          if (err.code === 'storage/unauthorized') {
+            toast.error(`${file.name}: 업로드 권한이 없습니다 (Firebase Storage 설정 확인 필요).`);
+          } else {
+            toast.error(`${file.name}: 업로드 실패 (${err.message || '알 수 없는 오류'})`);
+          }
+        }
       }
       
-      toast.success(`${downloadURLs.length}개의 이미지가 업로드되었습니다.`);
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
+      if (successCount > 0) {
+        if (activeTab === 'portfolios') {
+          const currentImages = formData.images || [];
+          setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...uploadedUrls] }));
+        } else {
+          setFormData(prev => ({ ...prev, image: uploadedUrls[0] }));
+        }
+        toast.success(`${successCount}개의 사진 업로드 완료`);
+      }
+
+      if (failCount > 0) {
+        toast.info('일부 파일 업로드에 실패했습니다. 파일 형식이나 네트워크를 확인해 주세요.');
+      }
+    } catch (error: any) {
+      console.error('General upload error:', error);
+      toast.error('업로드 과정 중에 오류가 발생했습니다.');
     } finally {
       setUploading(false);
-      // Reset input value so same file can be selected again
-      e.target.value = '';
+      if (e.target) e.target.value = '';
     }
   };
 
