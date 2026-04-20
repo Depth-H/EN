@@ -33,7 +33,7 @@ export default function Home() {
   const defaultServices = [
     { icon: Lightbulb, title: '조명 설계 및 시공', desc: '호텔 분위기를 결정짓는 최적의 조명 솔루션' },
     { icon: Zap, title: '동력 및 배선 공사', desc: '안정적인 전력 공급을 위한 정밀한 전기 설비' },
-    { icon: Shield, title: '소방 및 안전 시스템', desc: '철저한 법규 준수와 완벽한 안전 시스템 구축' },
+    { icon: Shield, title: '전기 안전 최적화', desc: '철저한 법규 준수와 완벽한 전기 안전 점검 서비스' },
     { icon: Building2, title: '스마트 제어 시스템', desc: '효율적인 관리를 위한 최첨단 자동화 시스템' },
   ];
 

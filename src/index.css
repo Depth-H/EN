@@ -87,6 +87,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
+    word-break: keep-all;
+    overflow-wrap: break-word;
     }
 }
 
